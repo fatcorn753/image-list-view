@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1
+
+- README: added Marketplace badges and a section on how this extension differs from other image extensions. No code changes.
+
 ## 0.4.0
 
 - English UI. The extension follows VS Code's display language (English or Japanese).
