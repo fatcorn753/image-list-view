@@ -24,6 +24,50 @@ let current; // クリックした画像を受け取るパネル(最後に操作
 // 一覧の中から開いた画像 → 開いた時刻。クリック追加の対象から外す
 const selfOpened = new Map();
 
+// Webview(一覧の画面)で使う文字列。英語の原文をキーにし、表示言語の訳を Webview に渡す
+const WEBVIEW_STRINGS = [
+  'Image List',
+  '+ Add',
+  'Choose files or folders to add to the list',
+  'Click to add',
+  'While on, images you open by clicking or drag & drop are added to the list (even if no list is open). Applies to all of VS Code',
+  'Filter, e.g. loss / exp_*_run?_*.png',
+  'Sort',
+  'Name',
+  'Modified',
+  'Created',
+  'Size',
+  'Layout',
+  'Vertical',
+  'Horizontal',
+  'Width',
+  'Include subfolders',
+  '↑ Ascending',
+  '↓ Descending',
+  'Click to switch between ascending and descending',
+  'Modified {0}',
+  'Created {0}',
+  "Click to open in VS Code's image preview beside",
+  'Remove this image from the list (the file is not deleted)',
+  'Remove from list',
+  'No images match the filter.',
+  'To add a folder, drop it here while holding Shift, or choose it with "+ Add".',
+  'Click an image in the Explorer on the left, or drag & drop it here, to add it. {0}',
+  'No images. Drop files here while holding Shift, or choose them with "+ Add".',
+  'Loading…',
+  '{0} / {1} images{2}',
+  ' (stopped at the limit of {0})',
+  'Restore {0} removed',
+];
+
+// 表示言語の訳(l10n/bundle.l10n.<言語>.json)を引く。英語環境では bundle が無いので原文のまま
+function translate(message) {
+  const entry = vscode.l10n.bundle && vscode.l10n.bundle[message];
+  if (typeof entry === 'string') return entry;
+  if (entry && typeof entry.message === 'string') return entry.message;
+  return message;
+}
+
 const isImage = (uri) => IMAGE_EXTS.has(path.extname(uri.path).toLowerCase());
 const clickToAdd = () => vscode.workspace.getConfiguration(CONFIG_SECTION).get('clickToAdd', true);
 const setClickToAdd = (value) =>
@@ -55,10 +99,10 @@ function activate(context) {
   status.command = 'imageListView.open';
   const updateStatus = () => {
     const on = clickToAdd();
-    status.text = on ? '$(files) 画像一覧' : '$(files) 画像一覧(追加オフ)';
+    status.text = on ? vscode.l10n.t('$(files) Image List') : vscode.l10n.t('$(files) Image List (adding off)');
     status.tooltip = on
-      ? '画像一覧を開く。画像をクリックやドラッグ&ドロップで開くと、一覧に追加される'
-      : '画像一覧を開く。クリックで追加はオフ(画像は普段どおり 1 枚ずつ開く)';
+      ? vscode.l10n.t('Open the image list. Images you open by clicking or drag & drop are added to it')
+      : vscode.l10n.t('Open the image list. Click to add is off (images open one at a time as usual)');
   };
   updateStatus();
   status.show();
@@ -105,6 +149,10 @@ function onTabsOpened(context, opened) {
 
 function deactivate() {}
 
+function escapeHtml(text) {
+  return String(text).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+}
+
 async function resolveTargets(uris) {
   const resolved = [];
   for (const uri of uris) {
@@ -141,7 +189,7 @@ class ImageListPanel {
     this.imgErrors = new Set(); // テスト用: Webview で読み込めなかった画像
     this.mediaRoot = vscode.Uri.joinPath(context.extensionUri, 'media');
 
-    this.panel = vscode.window.createWebviewPanel('imageListView', '画像一覧', viewColumn, {
+    this.panel = vscode.window.createWebviewPanel('imageListView', vscode.l10n.t('Image List'), viewColumn, {
       enableScripts: true,
       retainContextWhenHidden: true,
       localResourceRoots: [this.mediaRoot],
@@ -165,9 +213,9 @@ class ImageListPanel {
 
   title() {
     if (this.targets.length === 1 && this.targets[0].isDir) {
-      return `画像一覧: ${path.basename(this.targets[0].uri.path)}`;
+      return vscode.l10n.t('Image List: {0}', path.basename(this.targets[0].uri.path));
     }
-    return '画像一覧';
+    return vscode.l10n.t('Image List');
   }
 
   // 同じものが既にあれば足さない。外していた画像を足し直したときは除外を解く
@@ -226,7 +274,9 @@ class ImageListPanel {
     if (targets.length) {
       this.addTargets(targets);
     } else {
-      vscode.window.showInformationMessage('画像一覧: ドロップしたものに画像やフォルダがありませんでした。');
+      vscode.window.showInformationMessage(
+        vscode.l10n.t('Image List: the dropped items contain no images or folders.')
+      );
     }
   }
 
@@ -328,8 +378,8 @@ class ImageListPanel {
       canSelectFiles: true,
       canSelectFolders: true,
       canSelectMany: true,
-      openLabel: '一覧に追加',
-      filters: { 画像: [...IMAGE_EXTS].map((e) => e.slice(1)) },
+      openLabel: vscode.l10n.t('Add to List'),
+      filters: { [vscode.l10n.t('Images')]: [...IMAGE_EXTS].map((e) => e.slice(1)) },
     });
     if (picked && picked.length) {
       this.addTargets(await resolveTargets(picked));
@@ -406,43 +456,47 @@ class ImageListPanel {
       `style-src ${webview.cspSource}`,
       `script-src 'nonce-${nonce}'`,
     ].join('; ');
+    const t = (m) => escapeHtml(translate(m));
+    // 訳は JSON として埋め込む(実行されないので CSP の対象外)。</script> で切れないよう < をエスケープする
+    const strings = JSON.stringify(Object.fromEntries(WEBVIEW_STRINGS.map((m) => [m, translate(m)]))).replace(/</g, '\\u003c');
     return `<!DOCTYPE html>
-<html lang="ja">
+<html lang="${escapeHtml(vscode.env.language)}">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="${csp}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="${uri('main.css')}">
-<title>画像一覧</title>
+<title>${t('Image List')}</title>
 </head>
 <body>
 <header class="toolbar">
-  <button id="add" type="button" class="primary" title="ファイルやフォルダを選んで一覧に追加する">+ 追加</button>
-  <label class="group" title="オンの間は、画像をクリックやドラッグ&ドロップで開くと、一覧に追加される(一覧を開いていなくても)。全体の設定"><input id="collect" type="checkbox"> クリックで追加</label>
-  <input id="pattern" type="search" placeholder="絞り込み 例: loss / exp_*_run?_*.png" spellcheck="false">
-  <label class="group">並び順
+  <button id="add" type="button" class="primary" title="${t('Choose files or folders to add to the list')}">${t('+ Add')}</button>
+  <label class="group" title="${t('While on, images you open by clicking or drag & drop are added to the list (even if no list is open). Applies to all of VS Code')}"><input id="collect" type="checkbox"> ${t('Click to add')}</label>
+  <input id="pattern" type="search" placeholder="${t('Filter, e.g. loss / exp_*_run?_*.png')}" spellcheck="false">
+  <label class="group">${t('Sort')}
     <select id="sortKey">
-      <option value="name">名前</option>
-      <option value="mtime">更新日時</option>
-      <option value="ctime">作成日時</option>
-      <option value="size">サイズ</option>
+      <option value="name">${t('Name')}</option>
+      <option value="mtime">${t('Modified')}</option>
+      <option value="ctime">${t('Created')}</option>
+      <option value="size">${t('Size')}</option>
     </select>
   </label>
   <button id="sortDir" type="button"></button>
-  <span class="group seg" role="group" aria-label="並べる向き">
-    <button id="layoutVertical" type="button">縦</button>
-    <button id="layoutHorizontal" type="button">横</button>
+  <span class="group seg" role="group" aria-label="${t('Layout')}">
+    <button id="layoutVertical" type="button">${t('Vertical')}</button>
+    <button id="layoutHorizontal" type="button">${t('Horizontal')}</button>
   </span>
-  <label class="group">幅
+  <label class="group">${t('Width')}
     <input id="size" type="range" min="80" max="2000" step="10">
     <span id="sizeLabel" class="num"></span>
   </label>
-  <label class="group" id="recursiveWrap" hidden><input id="recursive" type="checkbox"> サブフォルダも含める</label>
+  <label class="group" id="recursiveWrap" hidden><input id="recursive" type="checkbox"> ${t('Include subfolders')}</label>
   <button id="restore" type="button" hidden></button>
   <span id="count" class="count"></span>
 </header>
 <p id="empty" class="empty" hidden></p>
 <main id="list" class="list"></main>
+<script type="application/json" id="l10n">${strings}</script>
 <script nonce="${nonce}" src="${uri('logic.js')}"></script>
 <script nonce="${nonce}" src="${uri('main.js')}"></script>
 </body>

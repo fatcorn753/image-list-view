@@ -1,10 +1,10 @@
 {
   "name": "image-list-view",
-  "displayName": "Image List View",
-  "description": "選んだ画像だけを 1 つのタブに縦または横で並べて表示する",
-  "version": "0.3.0",
-  "publisher": "local",
-  "private": true,
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "version": "0.4.0",
+  "publisher": "fatcorn753",
+  "icon": "images/icon.png",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -22,6 +22,7 @@
     "Other"
   ],
   "main": "./extension.js",
+  "l10n": "./l10n",
   "activationEvents": [
     "onStartupFinished"
   ],
@@ -29,12 +30,12 @@
     "commands": [
       {
         "command": "imageListView.open",
-        "title": "画像を一覧表示",
+        "title": "%command.open%",
         "category": "Image List View"
       },
       {
         "command": "imageListView.toggleClickToAdd",
-        "title": "クリックで追加のオン・オフを切り替え",
+        "title": "%command.toggleClickToAdd%",
         "category": "Image List View"
       }
     ],
@@ -45,7 +46,7 @@
           "type": "boolean",
           "default": true,
           "scope": "application",
-          "description": "画像をクリックやドラッグ&ドロップで開いたとき、1 枚ずつのプレビューではなく画像一覧に追加する。一覧を開いていなければ自動で開く。"
+          "description": "%config.clickToAdd%"
         }
       }
     },
@@ -62,5 +63,14 @@
   "scripts": {
     "test": "node --test test/logic.test.js",
     "package": "npx --yes @vscode/vsce package"
-  }
+  },
+  "keywords": [
+    "image",
+    "viewer",
+    "gallery",
+    "compare",
+    "preview",
+    "graph",
+    "plot"
+  ]
 }

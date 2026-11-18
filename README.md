@@ -1,145 +1,127 @@
 # Image List View
 
-選んだ画像だけを、VS Code の 1 つのタブに縦または横で並べて表示する拡張機能です。実験結果のグラフを何枚も見比べたいときなどに使えます。
+Show only the images you pick, side by side in a single VS Code tab, vertically or horizontally. Handy for comparing many experiment plots at once.
 
-エクスプローラーで画像をクリックするか、ドラッグ&ドロップすると、その画像が一覧に追加されます。
+Click an image in the Explorer, or drag & drop it, and it is added to the list.
 
-![エディタを右に分割して一覧を縦に並べた例](docs/images/split-right.png)
+![The list split to the right of the editor, images stacked vertically](docs/images/split-right.png)
 
-*(画面は説明用の模式図で、グラフは架空のものです)*
+*(The screen is an illustration, and the plots are made-up sample data.)*
 
-[English summary](#english)
+English | [日本語](README.ja.md)
 
-## 主な機能
+The UI follows VS Code's display language (English or Japanese).
 
-- 画像をクリックやドラッグ&ドロップで開くと、1 枚ずつのプレビューではなく一覧に追加される(一覧を開いていなければ自動で開く)
-- 縦 1 列、または横 1 行(折り返さず横スクロール)に並べる。枚数の上限はない
-- 名前・更新日時・作成日時・サイズで並べ替え(昇順と降順を切り替え可)。名前順は `run2` < `run10` のように数値を数値として比べる
-- ファイル名で絞り込み(部分一致、または glob)
-- 画像 1 枚の幅を 80〜2000px で調整
-- 一覧から外す・外した画像を戻す(ファイル自体は消えない)
-- フォルダ内の画像が追加・変更・削除されると自動で更新
+## Features
 
-## インストール
+- Opening an image by clicking or drag & drop adds it to the list instead of opening a single preview. The list opens automatically if none is open.
+- Stack images in one column, or line them up in one row (no wrapping, scroll sideways). No limit on the number of images.
+- Sort by name, modified time, created time, or size, ascending or descending. Name sort compares numbers as numbers, so `run2` comes before `run10`.
+- Filter by file name (substring or glob).
+- Set the width of each image from 80 to 2000 px.
+- Remove images from the list and bring them back (the files are never deleted).
+- The list updates automatically when images in a folder are added, changed, or deleted.
 
-Marketplace には公開していません。GitHub の Releases から `.vsix` ファイルを入れてください。
+## Installation
 
-1. [Releases](https://github.com/fatcorn753/image-list-view/releases) から最新の `image-list-view-x.y.z.vsix` をダウンロードする。
-2. VS Code の拡張機能ビューを開き、右上の「…」メニューから「VSIX からのインストール…(Install from VSIX...)」を選び、ダウンロードしたファイルを指定する。
+Search for "Image List View" in the Extensions view (`Cmd+Shift+X` / `Ctrl+Shift+X`), or install it from the [Marketplace page](https://marketplace.visualstudio.com/items?itemName=fatcorn753.image-list-view).
 
-コマンドラインで入れる場合:
-
-```bash
-code --install-extension image-list-view-0.3.0.vsix
-```
-
-`code` コマンドが見つからないときは、VS Code のコマンドパレット(`Cmd+Shift+P` / `Ctrl+Shift+P`)で「Shell Command: Install 'code' command in PATH」を実行してください(macOS)。
-
-アンインストール:
+From the command line:
 
 ```bash
-code --uninstall-extension local.image-list-view
+code --install-extension fatcorn753.image-list-view
 ```
 
-## 使い方
+Without Marketplace access, download the `.vsix` from [Releases](https://github.com/fatcorn753/image-list-view/releases) and use "Install from VSIX..." in the "..." menu of the Extensions view.
 
-1. 左のエクスプローラーで画像をクリックする。普段の 1 枚のプレビューの代わりに画像一覧が開き、その画像が入る。続けてクリックした画像も同じ一覧に足されていく。
-2. エクスプローラーから画像をエディタ領域(一覧の上を含む)にドラッグ&ドロップしても同じように入る。複数枚まとめても 1 つの一覧に入る。
-3. フォルダごと足すときは、**Shift を押しながら**一覧の上にドロップする(Shift なしだと VS Code がフォルダを一覧に渡さない)。ツールバーの「+ 追加」からも選べる。
-4. 一覧の画像にマウスを乗せると右上に「×」が出る。押すと一覧から外れる(ファイルは消えない)。
-5. 一覧の中の画像をクリックすると、VS Code 標準のプレビューで横に 1 枚だけ開く。
+## Usage
 
-### 1 枚ずつ普通に開きたいとき
+1. Click an image in the Explorer. Instead of the usual single preview, the image list opens with that image in it. Images you click next are added to the same list.
+2. Dragging images from the Explorer onto the editor area (including the list) adds them the same way. Dropping several at once puts them all in one list.
+3. To add a whole folder, **hold Shift** while dropping it onto the list (without Shift, VS Code does not hand folders to the list). You can also pick it with "+ Add" in the toolbar.
+4. Hover an image to show "×" at its top right. Click it to remove the image from the list (the file is not deleted).
+5. Click an image in the list to open it alone in VS Code's built-in preview beside the list.
 
-「画像を開くと一覧に入る」動作は、設定 `imageListView.clickToAdd`(既定はオン)で切り替えます。次のどれでも変えられます。
+### Opening images one at a time as usual
 
-- 一覧のツールバーの「クリックで追加」チェック
-- コマンドパレットの「Image List View: クリックで追加のオン・オフを切り替え」
-- 設定画面で `imageListView.clickToAdd` を検索
+The setting `imageListView.clickToAdd` (on by default) controls whether opening an image adds it to the list. You can change it with any of these:
 
-オフのときは、右下のステータスバーに「画像一覧(追加オフ)」と表示されます。
+- The "Click to add" checkbox in the list toolbar
+- "Image List View: Toggle Click to Add" in the Command Palette
+- Searching for `imageListView.clickToAdd` in Settings
 
-### 分割して使う
+While it is off, the status bar at the bottom right shows "Image List (adding off)".
 
-一覧はふつうのエディタタブなので、コードの横や下に分割して置けます。分割すると一覧の場所は狭くなるので、ツールバーの「幅」スライダーで画像 1 枚の幅を合わせます。
+### Using it in a split editor
 
-- 右に分割(上の画像): 「縦」にして、幅を一覧の場所に収まる大きさ(例 420px)にする。コードを見ながら、グラフを上下にスクロールして見比べられる。
-- 下に分割(下の画像): 「横」にして、幅を小さく(例 250px)する。何枚ものグラフを 1 行に並べて一度に見比べられる。
+The list is an ordinary editor tab, so you can place it beside or below your code. A split leaves less room for the list, so use the "Width" slider in the toolbar to fit the images.
 
-![エディタを下に分割して一覧を横に並べた例](docs/images/split-down.png)
+- Split right (image above): choose "Vertical" and set the width to fit the list area (for example 420 px). Scroll through the plots while you read the code.
+- Split down (image below): choose "Horizontal" and make the width small (for example 250 px). Compare many plots in one row at a glance.
 
-タブを右や下に分割するには、一覧のタブをエディタ領域の右端や下端までドラッグするか、タブを右クリックして「右に分割」などを選びます。
+![The list split below the editor, images lined up horizontally](docs/images/split-down.png)
 
-### ほかの開き方
+To split, drag the list tab to the right or bottom edge of the editor area, or right-click the tab and choose "Split Right" or a similar command.
 
-- 右下のステータスバーの「画像一覧」を押すと、空の一覧を開く(既にあれば前に出す)。
-- エクスプローラーでフォルダや画像(複数選択可)を右クリックして「画像を一覧表示」を選ぶと、それを並べた新しい一覧が開く。
-- 一覧が複数あるときは、最後に操作した一覧に画像が入る。
-- 既に開いているタブを切り替えただけでは追加されない。
+### Other ways to open the list
 
-### ツールバー
+- Click "Image List" in the status bar at the bottom right to open an empty list (or bring the existing one to the front).
+- Right-click folders or images (multiple selection works) in the Explorer and choose "Show Images in List" to open a new list with them.
+- With several lists open, images go to the list you used last.
+- Switching to a tab that is already open does not add its image.
 
-| 項目 | 内容 |
+### Toolbar
+
+| Item | What it does |
 | --- | --- |
-| + 追加 | ファイルやフォルダをダイアログで選んで一覧に足す |
-| クリックで追加 | 設定 `imageListView.clickToAdd` のオン・オフ(VS Code 全体に効く) |
-| 外した N 枚を戻す | × で外した画像をすべて一覧に戻す(外した画像があるときだけ表示) |
-| 絞り込み | ワイルドカードなしなら大文字小文字を無視した部分一致(例 `loss`)。`*` `?` `**` `{a,b}` の glob も使える(例 `exp_*_run{1,2}_*.png`)。`/` を含むとフォルダからの相対パスと照合する |
-| 並び順 | 名前・更新日時・作成日時・サイズ。隣のボタンで昇順と降順を切り替える |
-| 縦 / 横 | 縦は 1 列、横は折り返さず 1 行に並べる。はみ出した分はスクロールで見る |
-| 幅 | 画像 1 枚の幅(80〜2000px) |
-| サブフォルダも含める | フォルダを追加したときだけ表示。`.git` と `node_modules` は読まない |
+| + Add | Pick files or folders in a dialog and add them to the list |
+| Click to add | Turns the setting `imageListView.clickToAdd` on or off (applies to all of VS Code) |
+| Restore N removed | Puts back every image removed with ×. Shown only when some are removed |
+| Filter | Without wildcards: case-insensitive substring match (for example `loss`). Globs with `*` `?` `**` `{a,b}` also work (for example `exp_*_run{1,2}_*.png`). A pattern with `/` is matched against the path relative to the folder |
+| Sort | Name, modified, created, or size. The button next to it switches ascending and descending |
+| Vertical / Horizontal | Vertical: one column. Horizontal: one row without wrapping. Scroll to see the rest |
+| Width | Width of each image (80–2000 px) |
+| Include subfolders | Shown only when a folder is in the list. `.git` and `node_modules` are skipped |
 
-- 並び順・向き・幅などの設定は覚えておき、次に開いたときも同じ状態で始まる(絞り込みの文字だけは引き継がない)。
-- 対応形式: png, jpg/jpeg, gif, webp, bmp, svg, ico, avif
-- 1 回に読む画像は 5000 枚まで。
+- Sort order, layout, width, and other settings are remembered for the next list (the filter text is not carried over).
+- Supported formats: png, jpg/jpeg, gif, webp, bmp, svg, ico, avif
+- Up to 5000 images are loaded at a time.
 
-## 注意
+## Notes
 
-- 「クリックで追加」がオンの間は、Quick Open など、どの方法で画像を開いても一覧に入ります。1 枚だけ見たいときは、一覧の中の画像をクリックするか、設定をオフにしてください。
-- Remote(SSH・WSL・コンテナ)環境での動作は確認していません。
+- While "Click to add" is on, an image opened in any way (Quick Open and so on) goes into the list. To view a single image, click it inside the list or turn the setting off.
+- Remote environments (SSH, WSL, containers) are not tested.
 
-## 開発
+## Development
 
-依存パッケージもビルド手順もない、素の JavaScript です。
+Plain JavaScript with no dependencies and no build step.
 
-| ファイル | 役割 |
+| File | Role |
 | --- | --- |
-| `extension.js` | 拡張本体(パネル管理、フォルダ走査、ファイル監視、クリック追加) |
-| `media/logic.js` | 絞り込みと並べ替えの純粋関数(Webview と Node のテストで共用) |
-| `media/main.js`, `media/main.css` | 一覧の画面 |
-| `test/logic.test.js` | `media/logic.js` の単体テスト |
-| `test/integration/index.js` | 実際の VS Code で動かす結合テスト |
+| `extension.js` | The extension (panels, folder scanning, file watching, click to add) |
+| `package.nls*.json`, `l10n/` | Translations of command names and UI text (English is the source, Japanese is the translation) |
+| `media/logic.js` | Pure functions for filtering and sorting (shared by the webview and the Node tests) |
+| `media/main.js`, `media/main.css` | The list UI |
+| `test/logic.test.js` | Unit tests for `media/logic.js` |
+| `test/integration/index.js` | Integration tests that run in a real VS Code |
 
-単体テスト:
+Unit tests:
 
 ```bash
 npm test
 ```
 
-パッケージ作成(`.vsix` ができる):
+Build a package (creates a `.vsix`):
 
 ```bash
 npm run package
 ```
 
-結合テストは、渡したフォルダにファイルを書き込んでから消すので、使い捨てのフォルダで動かしてください。フォルダの直下に画像を数枚、`sub/` に画像を 1 枚置きます。`--user-data-dir` は短いパスにしてください(長いと IPC ソケットの作成に失敗します)。macOS の例:
+The integration tests write and delete a file in the folder you pass, so use a throwaway folder. Put a few images directly in it and one image in `sub/`. Keep `--user-data-dir` short (a long path makes the IPC socket fail). Example on macOS:
 
 ```bash
 IMAGE_LIST_TEST_DIR=/tmp/ilv-imgs "/Applications/Visual Studio Code.app/Contents/MacOS/Code" --extensionDevelopmentPath=$PWD --extensionTestsPath=$PWD/test/integration/index.js --user-data-dir=/tmp/ilv-ud --extensions-dir=/tmp/ilv-ext /tmp/ilv-imgs
 ```
-
-## English
-
-A VS Code extension that shows only the images you pick, side by side in a single tab, vertically or horizontally.
-
-- Click an image in the Explorer (or drag & drop it onto the editor area) and it is added to the list instead of opening a single preview. The list opens automatically if needed.
-- Shift + drop a folder onto the list, or use "+ 追加" (Add), to add every image in a folder.
-- Sort by name (natural number order), modified time, created time, or size. Filter by substring or glob.
-- Hover an image and press × to remove it from the list (the file is not deleted).
-- Turn this behavior off with the setting `imageListView.clickToAdd` or the "クリックで追加" checkbox.
-
-Install: download the `.vsix` from [Releases](https://github.com/fatcorn753/image-list-view/releases), then run "Extensions: Install from VSIX..." in VS Code. The UI is in Japanese.
 
 ## License
 

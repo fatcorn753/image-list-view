@@ -1,0 +1,7 @@
+{
+  "displayName": "Image List View",
+  "description": "選んだ画像だけを 1 つのタブに縦または横で並べて表示する",
+  "command.open": "画像を一覧表示",
+  "command.toggleClickToAdd": "クリックで追加のオン・オフを切り替え",
+  "config.clickToAdd": "画像をクリックやドラッグ&ドロップで開いたとき、1 枚ずつのプレビューではなく画像一覧に追加する。一覧を開いていなければ自動で開く。"
+}

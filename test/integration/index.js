@@ -43,6 +43,13 @@ async function run() {
   assert.equal(panel.items.length, 0);
   console.log('OK 空の一覧');
 
+  // 表示言語に合わせて訳が使われる(--locale=ja で起動すると日本語)
+  const ja = vscode.env.language.startsWith('ja');
+  assert.equal(panel.panel.title, ja ? '画像一覧' : 'Image List');
+  assert.ok(panel.panel.webview.html.includes(ja ? '>+ 追加<' : '>+ Add<'), 'ツールバーの文字');
+  assert.ok(panel.panel.webview.html.includes(ja ? '"Loading…":"読み込み中…"' : '"Loading…":"Loading…"'), 'Webview に渡す訳');
+  console.log(`OK 表示言語 ${vscode.env.language}`);
+
   // Webview が読み込み直された回数(ready が来た回数)を数える
   let readyCount = 0;
   const origOnMessage = panel.onMessage.bind(panel);

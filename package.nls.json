@@ -1,0 +1,7 @@
+{
+  "displayName": "Image List View",
+  "description": "Show only the images you pick, side by side in one tab, vertically or horizontally",
+  "command.open": "Show Images in List",
+  "command.toggleClickToAdd": "Toggle Click to Add",
+  "config.clickToAdd": "When you open an image by clicking or drag & drop, add it to the image list instead of opening a single preview. Opens the list automatically if none is open."
+}

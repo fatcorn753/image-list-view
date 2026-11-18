@@ -3,6 +3,16 @@
   const { filterItems, sortItems } = window.ImageListLogic;
 
   const $ = (id) => document.getElementById(id);
+
+  // 拡張側が埋め込んだ表示言語の訳。英語の原文がキーで、{0} などを引数で置き換える
+  let strings = {};
+  try {
+    strings = JSON.parse(($('l10n') && $('l10n').textContent) || '{}');
+  } catch {
+    // 訳が読めなければ英語のまま出す
+  }
+  const t = (message, ...args) =>
+    (strings[message] || message).replace(/\{(\d+)\}/g, (m, i) => (args[i] === undefined ? m : String(args[i])));
   const el = {
     add: $('add'),
     collect: $('collect'),
@@ -29,7 +39,7 @@
   // id ごとに DOM を使い回し、自動更新のたびに全画像を読み直してちらつくのを防ぐ
   const cards = new Map();
 
-  const dateFmt = new Intl.DateTimeFormat('ja-JP', {
+  const dateFmt = new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
     year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit', second: '2-digit',
   });
@@ -42,8 +52,8 @@
 
   function metaText(item) {
     if (state.sortKey === 'size') return formatSize(item.size);
-    if (state.sortKey === 'ctime') return `作成 ${dateFmt.format(item.ctime)}`;
-    return `更新 ${dateFmt.format(item.mtime)}`;
+    if (state.sortKey === 'ctime') return t('Created {0}', dateFmt.format(item.ctime));
+    return t('Modified {0}', dateFmt.format(item.mtime));
   }
 
   function setState(patch) {
@@ -55,8 +65,8 @@
   function applyControls() {
     el.pattern.value = state.pattern;
     el.sortKey.value = state.sortKey;
-    el.sortDir.textContent = state.sortDir === 'asc' ? '↑ 昇順' : '↓ 降順';
-    el.sortDir.title = 'クリックで昇順と降順を切り替え';
+    el.sortDir.textContent = state.sortDir === 'asc' ? t('↑ Ascending') : t('↓ Descending');
+    el.sortDir.title = t('Click to switch between ascending and descending');
     el.layoutVertical.classList.toggle('active', state.layout === 'vertical');
     el.layoutHorizontal.classList.toggle('active', state.layout === 'horizontal');
     el.layoutVertical.setAttribute('aria-pressed', String(state.layout === 'vertical'));
@@ -75,7 +85,7 @@
     const img = document.createElement('img');
     // loading='lazy' は使わない。非表示中に再読み込みされた Webview では、表示に戻っても画像が読まれないままになることがあった
     img.decoding = 'async';
-    img.title = 'クリックで VS Code の画像プレビューを横に開く';
+    img.title = t("Click to open in VS Code's image preview beside");
     img.addEventListener('click', () => vscode.postMessage({ type: 'open', id: fig.dataset.id }));
     img.addEventListener('load', () => vscode.postMessage({ type: 'imgLoad', id: fig.dataset.id }));
     img.addEventListener('error', () => {
@@ -86,8 +96,8 @@
     remove.type = 'button';
     remove.className = 'remove';
     remove.textContent = '×';
-    remove.title = 'この画像を一覧から外す(ファイルは消えない)';
-    remove.setAttribute('aria-label', '一覧から外す');
+    remove.title = t('Remove this image from the list (the file is not deleted)');
+    remove.setAttribute('aria-label', t('Remove from list'));
     remove.addEventListener('click', () => vscode.postMessage({ type: 'remove', id: fig.dataset.id }));
     const cap = document.createElement('figcaption');
     const name = document.createElement('span');
@@ -100,12 +110,14 @@
   }
 
   function emptyMessage() {
-    if (items.length) return '絞り込みに一致する画像がありません。';
-    const folderHint = 'フォルダは Shift を押しながらここにドロップするか、「+ 追加」から選べます。';
+    if (items.length) return t('No images match the filter.');
     if (clickToAdd) {
-      return `左のエクスプローラーで画像をクリックするか、ここにドラッグ&ドロップすると追加されます。${folderHint}`;
+      return t(
+        'Click an image in the Explorer on the left, or drag & drop it here, to add it. {0}',
+        t('To add a folder, drop it here while holding Shift, or choose it with "+ Add".')
+      );
     }
-    return `画像がありません。Shift を押しながらここにドロップするか、「+ 追加」から選んでください。`;
+    return t('No images. Drop files here while holding Shift, or choose them with "+ Add".');
   }
 
   function render() {
@@ -139,7 +151,7 @@
     // append は既存ノードを移動するだけなので、並べ替えでも画像は読み直されない
     el.list.append(frag);
 
-    el.count.textContent = loaded ? `${shown.length} / ${items.length} 枚${truncatedNote}` : '読み込み中…';
+    el.count.textContent = loaded ? t('{0} / {1} images{2}', shown.length, items.length, truncatedNote) : t('Loading…');
     el.empty.hidden = !loaded || shown.length > 0;
     el.empty.textContent = emptyMessage();
   }
@@ -226,10 +238,10 @@
     } else if (msg.type === 'items') {
       items = msg.items;
       loaded = true;
-      truncatedNote = msg.truncated ? `(上限 ${msg.max} 枚で打ち切り)` : '';
+      truncatedNote = msg.truncated ? t(' (stopped at the limit of {0})', msg.max) : '';
       el.recursiveWrap.hidden = !msg.hasFolder;
       el.restore.hidden = msg.excludedCount === 0;
-      el.restore.textContent = `外した ${msg.excludedCount} 枚を戻す`;
+      el.restore.textContent = t('Restore {0} removed', msg.excludedCount);
       render();
     }
   });
