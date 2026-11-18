@@ -1,0 +1,210 @@
+:root {
+  --img-width: 600px;
+  --gap: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  background: var(--vscode-editor-background);
+  color: var(--vscode-foreground);
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
+  background: var(--vscode-editor-background);
+}
+
+.group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+input[type='search'],
+select {
+  font: inherit;
+  color: var(--vscode-input-foreground);
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, var(--vscode-dropdown-border, transparent));
+  border-radius: 2px;
+  padding: 3px 6px;
+}
+
+input[type='search'] {
+  flex: 1 1 260px;
+  min-width: 180px;
+}
+
+input[type='search']:focus,
+select:focus,
+button:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+button {
+  font: inherit;
+  color: var(--vscode-button-secondaryForeground);
+  background: var(--vscode-button-secondaryBackground);
+  border: none;
+  border-radius: 2px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--vscode-button-secondaryHoverBackground);
+}
+
+.seg {
+  gap: 0;
+}
+
+.seg button + button {
+  margin-left: 1px;
+}
+
+.seg button.active {
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-button-background);
+}
+
+.num,
+.count {
+  font-variant-numeric: tabular-nums;
+}
+
+.num {
+  min-width: 4.5em;
+}
+
+.count {
+  margin-left: auto;
+  color: var(--vscode-descriptionForeground);
+}
+
+.list {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--gap);
+  padding: var(--gap);
+}
+
+/* 横並びは折り返さず 1 行に置き、はみ出した分は横スクロールで見る */
+.list.horizontal {
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+
+.card {
+  flex: none;
+  width: var(--img-width);
+  margin: 0;
+}
+
+.card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: zoom-in;
+  /* 透過 PNG が暗いテーマで見えなくならないよう背景を敷く */
+  background: #fff;
+}
+
+/* 幅を狭くしてもファイル名が潰れないよう、名前と日時は 2 行に分ける */
+.card figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 4px;
+  font-size: 0.9em;
+}
+
+/* 長いファイル名は末尾(run0 など見分けたい部分)が隠れないよう省略せず折り返す */
+.card .name {
+  overflow-wrap: anywhere;
+}
+
+.card .meta {
+  color: var(--vscode-descriptionForeground);
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  margin: 0;
+  padding: var(--gap) var(--gap) 0;
+  color: var(--vscode-descriptionForeground);
+}
+
+button.primary {
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-button-background);
+}
+
+button.primary:hover {
+  background: var(--vscode-button-hoverBackground);
+}
+
+.card {
+  position: relative;
+}
+
+/* 外すボタンは邪魔にならないよう、カードにマウスを乗せたときだけ出す */
+.card .remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 16px;
+  line-height: 26px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.card:hover .remove,
+.card .remove:focus-visible {
+  opacity: 1;
+}
+
+.card .remove:hover {
+  background: var(--vscode-errorForeground, #c33);
+}
+
+.card.broken img {
+  min-height: 60px;
+  background: var(--vscode-inputValidation-errorBackground, #5a1d1d);
+}
+
+/* ドラッグ中はドロップできる場所だと分かるよう枠を出す */
+body.dragging .list {
+  outline: 2px dashed var(--vscode-focusBorder);
+  outline-offset: -6px;
+}
