@@ -1,5 +1,7 @@
 # Image List View
 
+[![VS Marketplace](https://vsmarketplacebadges.dev/version-short/fatcorn753.image-list-view.svg)](https://marketplace.visualstudio.com/items?itemName=fatcorn753.image-list-view) [![Installs](https://vsmarketplacebadges.dev/installs-short/fatcorn753.image-list-view.svg)](https://marketplace.visualstudio.com/items?itemName=fatcorn753.image-list-view)
+
 選んだ画像だけを、VS Code の 1 つのタブに縦または横で並べて表示する拡張機能です。実験結果のグラフを何枚も見比べたいときなどに使えます。
 
 エクスプローラーで画像をクリックするか、ドラッグ&ドロップすると、その画像が一覧に追加されます。

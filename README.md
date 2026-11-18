@@ -1,5 +1,7 @@
 # Image List View
 
+[![VS Marketplace](https://vsmarketplacebadges.dev/version-short/fatcorn753.image-list-view.svg)](https://marketplace.visualstudio.com/items?itemName=fatcorn753.image-list-view) [![Installs](https://vsmarketplacebadges.dev/installs-short/fatcorn753.image-list-view.svg)](https://marketplace.visualstudio.com/items?itemName=fatcorn753.image-list-view)
+
 Show only the images you pick, side by side in a single VS Code tab, vertically or horizontally. Handy for comparing many experiment plots at once.
 
 Click an image in the Explorer, or drag & drop it, and it is added to the list.
