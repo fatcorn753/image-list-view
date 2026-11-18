@@ -24,6 +24,15 @@ The UI follows VS Code's display language (English or Japanese).
 - Remove images from the list and bring them back (the files are never deleted).
 - The list updates automatically when images in a folder are added, changed, or deleted.
 
+## How it differs from other image extensions
+
+Most image extensions for VS Code either show one image at a time, or show every image in a folder as a gallery. Image List View is built for a different job: comparing a handful of images you choose, next to your code.
+
+- **Only the images you pick.** Click or drag images to add them, and remove the ones you no longer need. Nothing else in the folder gets in the way.
+- **One column or one row, sized to fit.** Stack images vertically or line them up horizontally, and use the width slider to fit them into a split editor beside or below your code.
+- **Made for numbered results.** Name sort puts `run2` before `run10`, and a glob filter such as `exp_*_run{1,2}_*.png` narrows down a series of experiment plots.
+- **Stays up to date.** When your script writes new plots, the list refreshes on its own.
+
 ## Installation
 
 Search for "Image List View" in the Extensions view (`Cmd+Shift+X` / `Ctrl+Shift+X`), or install it from the [Marketplace page](https://marketplace.visualstudio.com/items?itemName=fatcorn753.image-list-view).
