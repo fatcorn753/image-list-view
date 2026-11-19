@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.2
+
+- Fixed: a single image whose name contains `[ ]`, `{ }`, `*` or `?` (e.g. `plot[1].png`) was not refreshed when the file changed.
+- Fixed: closing the list while it was still loading, or while the "+ Add" dialog was open, raised a "Webview is disposed" error.
+- README: the "no limit" note meant images per row; up to 5000 images are loaded at a time.
+
 ## 0.4.1
 
 - README: added Marketplace badges and a section on how this extension differs from other image extensions. No code changes.

@@ -171,6 +171,28 @@ async function run() {
   await waitFor(() => imageTabs().length === 0, '3 枚ぶんのタブを閉じる');
   console.log('OK まとめて開いても一覧は 1 つ');
 
+  // [ ] を含む名前の画像を単体で追加しても、書き換えを検知する(名前を glob として渡すと一致しない)
+  const bracket = path.join(other, 'plot[1].png');
+  fs.copyFileSync(path.join(dir, top[0]), bracket);
+  const bracketUri = vscode.Uri.file(bracket);
+  const panel3 = await vscode.commands.executeCommand('imageListView.open', bracketUri, [bracketUri]);
+  await waitFor(() => panel3.items.length === 1, '[ ] を含む名前の画像');
+  const oldMtime = panel3.items[0].mtime;
+  await sleep(1100); // mtime の分解能より待ってから書き換える
+  fs.copyFileSync(path.join(dir, top[1]), bracket);
+  await waitFor(() => panel3.items[0] && panel3.items[0].mtime !== oldMtime, '[ ] を含む名前の画像の書き換え検知');
+  console.log('OK [ ] を含む名前の単体画像の自動更新');
+
+  // 走査中にパネルを閉じても、閉じた Webview へ送って例外にならない
+  const pending = panel3.refresh();
+  panel3.panel.dispose();
+  await pending;
+  panel3.addTargets([{ uri: otherUri, isDir: false }]); // ダイアログを待つ間に閉じられた場合に相当
+  panel3.scheduleRefresh(0);
+  await sleep(200);
+  assert.equal(panel3.watchers.size, 0, '閉じたパネルに監視を足さない');
+  console.log('OK 走査中・追加待ちの間に閉じても例外にならない');
+
   fs.rmSync(other, { recursive: true, force: true });
   const hold = Number(process.env.IMAGE_LIST_HOLD_MS || 0);
   if (hold) await sleep(hold);

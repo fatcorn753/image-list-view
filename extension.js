@@ -141,7 +141,12 @@ function onTabsOpened(context, opened) {
     const panel = current || new ImageListPanel(context, [], tab.group.viewColumn);
     panel.addTargets([{ uri: input.uri, isDir: false }]);
     vscode.window.tabGroups.close(tab, true).then(
-      () => panel.panel.reveal(undefined, true),
+      () => {
+        // タブを閉じ終わるまでに一覧パネルのほうが閉じられていることがある
+        if (!panel.disposed) {
+          panel.panel.reveal(undefined, true);
+        }
+      },
       () => {} // ユーザーが先に閉じていた場合など。追加は済んでいるので無視してよい
     );
   }
@@ -185,6 +190,7 @@ class ImageListPanel {
     this.disposables = [];
     this.refreshTimer = undefined;
     this.scanSeq = 0;
+    this.disposed = false;
     this.imgLoaded = new Set(); // テスト用: Webview で読み込めた画像
     this.imgErrors = new Set(); // テスト用: Webview で読み込めなかった画像
     this.mediaRoot = vscode.Uri.joinPath(context.extensionUri, 'media');
@@ -220,6 +226,10 @@ class ImageListPanel {
 
   // 同じものが既にあれば足さない。外していた画像を足し直したときは除外を解く
   addTargets(targets, { refresh = true } = {}) {
+    // 「+ 追加」のダイアログやドロップの解決を待つ間にパネルが閉じられることがある
+    if (this.disposed) {
+      return;
+    }
     for (const t of targets) {
       const key = t.uri.toString();
       this.excluded.delete(key);
@@ -281,10 +291,22 @@ class ImageListPanel {
   }
 
   watch(t) {
-    const onChange = () => this.scheduleRefresh();
-    const pattern = t.isDir
-      ? new vscode.RelativePattern(t.uri, '**/*')
-      : new vscode.RelativePattern(vscode.Uri.joinPath(t.uri, '..'), path.basename(t.uri.path));
+    let pattern;
+    let onChange;
+    if (t.isDir) {
+      pattern = new vscode.RelativePattern(t.uri, '**/*');
+      onChange = () => this.scheduleRefresh();
+    } else {
+      // ファイル名を glob として渡すと plot[1].png のような [ ] { } * ? を含む名前が一致しないので、
+      // 親フォルダ直下を監視して URI が一致する通知だけを拾う
+      const key = t.uri.toString();
+      pattern = new vscode.RelativePattern(vscode.Uri.joinPath(t.uri, '..'), '*');
+      onChange = (uri) => {
+        if (uri.toString() === key) {
+          this.scheduleRefresh();
+        }
+      };
+    }
     const w = vscode.workspace.createFileSystemWatcher(pattern);
     w.onDidCreate(onChange);
     w.onDidChange(onChange);
@@ -294,6 +316,9 @@ class ImageListPanel {
 
   // 画像を連続で書き出すと通知が何十回も来るので、まとめて 1 回だけ読み直す
   scheduleRefresh(delay = 300) {
+    if (this.disposed) {
+      return;
+    }
     clearTimeout(this.refreshTimer);
     this.refreshTimer = setTimeout(() => this.refresh(), delay);
   }
@@ -314,7 +339,7 @@ class ImageListPanel {
         await this.addFile(t.uri, path.basename(t.uri.path), found, seen);
       }
     }
-    // 古い走査が後から終わって新しい結果を上書きしないようにする
+    // 古い走査が後から終わって新しい結果を上書きしないようにする(走査中にパネルが閉じられた場合も dispose が scanSeq を進める)
     if (seq !== this.scanSeq) {
       return;
     }
@@ -443,6 +468,10 @@ class ImageListPanel {
   }
 
   post(msg) {
+    // 閉じたパネルの Webview に送ると例外になる
+    if (this.disposed) {
+      return;
+    }
     this.panel.webview.postMessage(msg);
   }
 
@@ -504,6 +533,8 @@ class ImageListPanel {
   }
 
   dispose() {
+    this.disposed = true;
+    this.scanSeq++; // 走査中の refresh() に結果を送らせない
     clearTimeout(this.refreshTimer);
     panels.delete(this);
     if (current === this) {

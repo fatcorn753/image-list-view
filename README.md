@@ -17,7 +17,7 @@ The UI follows VS Code's display language (English or Japanese).
 ## Features
 
 - Opening an image by clicking or drag & drop adds it to the list instead of opening a single preview. The list opens automatically if none is open.
-- Stack images in one column, or line them up in one row (no wrapping, scroll sideways). No limit on the number of images.
+- Stack images in one column, or line them up in one row (no wrapping, scroll sideways). No limit on how many images fit in a row.
 - Sort by name, modified time, created time, or size, ascending or descending. Name sort compares numbers as numbers, so `run2` comes before `run10`.
 - Filter by file name (substring or glob).
 - Set the width of each image from 80 to 2000 px.
